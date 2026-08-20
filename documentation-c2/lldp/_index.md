@@ -126,3 +126,9 @@ Both agents must share a Layer 2 broadcast domain (same VLAN/subnet). LLDP is no
 
 - @Lavender-exe
 - @Mymaqn - Initial Idea
+
+## References
+
+- [IEEE Std 802.1AB LLDP for IETF LSVR Neighbor Discovery and Configuration](https://www.ieee802.org/1/files/public/docs2025/new-bottorff-lldp-tlvs-for-lsvr-0425-v00.pdf)
+- [Hilscher - Link Layer Discovery Protocol (LLDP)](https://www.hilscher.com/service-support/glossary/link-layer-discovery-protocol-lldp)
+- [Wikipedia - Link Layer Discovery Protocol](https://en.wikipedia.org/wiki/Link_Layer_Discovery_Protocol)

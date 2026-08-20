@@ -1,66 +1,68 @@
-# ExampleContainers
+# lldp
 
-This repo serves as an example for the Python and Golang containers that Mythic supports.
+Mythic C2 profile for peer-to-peer communication over IEEE 802.1AB (LLDP). C2 data is carried inside Organizationally Specific TLVs (Type 127) with a configurable OUI so that frames blend with vendor-specific LLDP extensions on the wire.
 
-## go_services
+LLDP is Layer 2 only. Both agents must share a broadcast domain. An egress agent (HTTP/HTTPX) bridges LLDP-linked agents back to the Mythic server, same as the SMB and TCP P2P profiles.
 
-`go_services` is an example container that supports:
+## Supported agents
 
-- basic_agent - a trimmed down Poseidon agent with no agent code, but does include a payload definition, build steps, and a few commands
-- http - a trimmed down http c2 profile with no actual server code, but does include the c2 profile definition
-- my_logger - a basic logger services that just writes to stdout
-- my_webhooks - a basic webhook services 
-- no_actual_translation - a basic translation services that doesn't actually do anything to the messages
+| Agent | Linux | Windows |
+|:------|:------|:--------|
+| [Starburst](https://github.com/Whispergate/Starburst) | AF_PACKET raw sockets | Npcap (`wpcap.dll`) |
 
-If you have go installed locally, you can test and run via:
+## Installation
 
-- `cd ExampleContainers/Payload_Type/go_services`
-- `go mod download && go mod tidy`
-- `go build -o mythic_go_services .`
-- `make run_custom` (update the top of the `Makefile` with environment variables you need to set)
-
-### What's happening
-At a high level, the `main.go` file imports each of the various "services" and calls `Initialize` on them. 
-In this function call:
-```go
-MythicContainer.StartAndRunForever([]MythicContainer.MythicServices{
-		MythicContainer.MythicServiceC2,
-		MythicContainer.MythicServiceTranslationContainer,
-		MythicContainer.MythicServiceWebhook,
-		MythicContainer.MythicServiceLogger,
-		MythicContainer.MythicServicePayload,
-	})
+```bash
+sudo ./mythic-cli install github https://github.com/Whispergate/lldp
 ```
-You need to identify which services you're standing up. For example, if you have this project, but you only want the webhook part to run and sync to Mythic, then you can simply comment out the other services, and they won't try to sync over.
 
-The payload type, c2 profile, logger, and webhooks all connect via RabbitMQ to the Mythic server. The translation containers connect via gRPC to the Mythic server directly though.
-Because of this, if you want to run your services remotely (i.e. not within Docker-compose like the Mythic server), then you need to adjust two flags for Mythic's .env:
-```text
-MYTHIC_SERVER_BIND_LOCALHOST_ONLY="false"
-RABBITMQ_BIND_LOCALHOST_ONLY="false"
+If Mythic is already running:
+
+```bash
+sudo ./mythic-cli c2 start lldp
 ```
-Then restart Mythic, `sudo ./mythic-cli start` so that Docker will bind those ports to `0.0.0.0` instead of `127.0.0.1`.
-## python_services
 
-`python_services` is an example container that supports:
+Or restart everything:
 
-- apfell - a basic instance of the `apfell` agent with payload definitions, build steps, and commands. This also shows examples of importing libraries on the side locally
-- mywebhook - a basic webhook service
-- translator - a basic translation service that doesn't actually do anything to the messages
-- websocket - a basic c2 profile 
-
-### What's happening
-At a high level, the `main.py` file imports each of the various "services". Upon the import, the various classes are loaded into memory.
-In this function call:
-```python
-mythic_container.mythic_service.start_and_run_forever()
+```bash
+sudo ./mythic-cli mythic start
 ```
-Mythic goes through all classes imported that are subclasses of PayloadType, C2Profile, etc and syncs over definitions.
 
-The payload type, c2 profile, logger, and webhooks all connect via RabbitMQ to the Mythic server. The translation containers connect via gRPC to the Mythic server directly though.
-Because of this, if you want to run your services remotely (i.e. not within Docker-compose like the Mythic server), then you need to adjust two flags for Mythic's .env:
-```text
-MYTHIC_SERVER_BIND_LOCALHOST_ONLY="false"
-RABBITMQ_BIND_LOCALHOST_ONLY="false"
+## Configuration
+
+| Parameter | Default | Description |
+|:----------|:--------|:------------|
+| `oui_profile` | Cisco (00:00:0C) | Vendor OUI preset for the Org-Specific TLV |
+| `oui_custom` | — | Custom 3-byte OUI as 6 hex chars. Used when `oui_profile` is "Custom" |
+| `subtype` | `01` | 1-byte TLV subtype (hex). Both ends must match |
+| `AESPSK` | aes256_hmac | Encryption mode |
+| `encrypted_exchange_check` | true | Perform key exchange on link establishment |
+| `killdate` | +365 days | Agent expiry date |
+
+## Requirements
+
+* **Linux**: `CAP_NET_RAW` + `CAP_NET_ADMIN` (or root)
+* **Windows**: Npcap installed. The agent resolves `wpcap.dll` at runtime
+
+## config.json
+
+```json
+{
+  "exclude_payload_type": true,
+  "exclude_c2_profiles": false,
+  "exclude_documentation_payload": true,
+  "exclude_documentation_c2": false,
+  "exclude_agent_icons": true
+}
 ```
-Then restart Mythic, `sudo ./mythic-cli start` so that Docker will bind those ports to `0.0.0.0` instead of `127.0.0.1`.
+
+## Authors
+
+- [@Lavender-exe](https://github.com/Lavender-exe)
+- [@Mymaqn](https://github.com/Mymaqn) — initial idea
+
+## References
+
+- [IEEE Std 802.1AB LLDP for IETF LSVR Neighbor Discovery and Configuration](https://www.ieee802.org/1/files/public/docs2025/new-bottorff-lldp-tlvs-for-lsvr-0425-v00.pdf)
+- [Hilscher - Link Layer Discovery Protocol (LLDP)](https://www.hilscher.com/service-support/glossary/link-layer-discovery-protocol-lldp)
+- [Wikipedia - Link Layer Discovery Protocol](https://en.wikipedia.org/wiki/Link_Layer_Discovery_Protocol)
