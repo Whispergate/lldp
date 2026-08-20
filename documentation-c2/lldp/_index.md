@@ -25,9 +25,12 @@ Wire format:
 | 2 Bytes              | Sequence number (uint16 big-endian, chunk index starting at 0)                           |
 | 2 Bytes              | Total chunks (uint16 big-endian)                                                         |
 | 0-499 Bytes          | Chunk payload (raw bytes of the base64 Mythic message fragment)                          |
+| (repeat TLV block)   | Up to 3 Org-Specific TLVs per frame (multi-TLV packing)                                 |
 | 2 Bytes              | End of LLDPDU TLV (0x0000)                                                               |
 
-Messages larger than 499 bytes are chunked across multiple LLDP frames sharing the same Message ID. After reassembly, the payload uses the standard Mythic format: `base64(uuid + encrypted_data)`.
+Up to 3 Org-Specific TLVs are packed into a single Ethernet frame (multi-TLV packing). This doubles throughput for large messages compared to one TLV per frame. The frame budget is 1514 bytes total; after mandatory headers (34 bytes) and the End TLV (2 bytes), 1478 bytes remain for Org-Specific TLVs. Each TLV costs 2 bytes header + 3 OUI + 1 subtype + 8 chunk header + payload, so a full 499-byte chunk uses 513 bytes. Two full TLVs fit per frame (1026 bytes); a third gets up to 438 bytes of payload.
+
+Messages larger than 499 bytes are chunked across TLVs and frames sharing the same Message ID. The receiver reassembles by sequence number and delivers the complete message once all chunks arrive. After reassembly, the payload uses the standard Mythic format: `base64(uuid + encrypted_data)`.
 
 If this is the callback that generated the message, then it is the same message you would send through an egress profile. If you are another callback in a chain:
 
