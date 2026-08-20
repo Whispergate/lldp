@@ -59,7 +59,7 @@ sudo ./mythic-cli mythic start
 ## Authors
 
 - [@Lavender-exe](https://github.com/Lavender-exe)
-- [@Mymaqn](https://github.com/Mymaqn) — initial idea
+- [@Mymaqn](https://github.com/Mymaqn) - initial idea
 
 ## References
 
