@@ -25,7 +25,7 @@ sudo ./mythic-cli c2 start lldp
 Or restart everything:
 
 ```bash
-sudo ./mythic-cli mythic start
+sudo ./mythic-cli restart
 ```
 
 ## Configuration
