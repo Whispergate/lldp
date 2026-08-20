@@ -33,7 +33,7 @@ sudo ./mythic-cli mythic start
 | Parameter | Default | Description |
 |:----------|:--------|:------------|
 | `oui_profile` | Cisco (00:00:0C) | Vendor OUI preset for the Org-Specific TLV |
-| `oui_custom` | — | Custom 3-byte OUI as 6 hex chars. Used when `oui_profile` is "Custom" |
+| `oui_custom` | - | Custom 3-byte OUI as 6 hex chars. Used when `oui_profile` is "Custom" |
 | `subtype` | `01` | 1-byte TLV subtype (hex). Both ends must match |
 | `AESPSK` | aes256_hmac | Encryption mode |
 | `encrypted_exchange_check` | true | Perform key exchange on link establishment |
